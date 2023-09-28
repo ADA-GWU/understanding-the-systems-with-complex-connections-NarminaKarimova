@@ -1,4 +1,6 @@
 import socket
+import sys
+import time
 
 # Function to connect to a server and send/receive data
 def connect_to_server(port):
@@ -19,15 +21,31 @@ def connect_to_server(port):
             response = s.recv(1024).decode()
             print(f"Server response from port {port}: {response}")
 
+        s.close()  # Close the socket when done
+
     except ConnectionRefusedError:
         print(f"Error: Server on port {port} is not running. Please start the server.")
     except KeyboardInterrupt:
         pass
-    finally:
-        s.close()
 
 if __name__ == "__main__":
-    ports = [9001]
+    if len(sys.argv) < 2:
+        print("Usage: python client.py <port1> <port2> ...")
+        sys.exit(1)
+
+    ports = [int(port) for port in sys.argv[1:]]  # Parse command-line arguments as integers
+
+    # Create a list to store all sockets
+    sockets = []
 
     for port in ports:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Define 's' here
         connect_to_server(port)
+        sockets.append(s)  # Add the socket to the list
+
+    # Wait for 2 seconds before exiting
+    time.sleep(2)
+
+    # Close all sockets
+    for s in sockets:
+        s.close()
